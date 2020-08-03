@@ -17,6 +17,7 @@ limitations under the License.
 package store
 
 import (
+	"context"
 	"strings"
 
 	"k8s.io/kube-state-metrics/pkg/constant"
@@ -42,28 +43,40 @@ var (
 			Type: metric.Gauge,
 			Help: "Information about a cluster node.",
 			GenerateFunc: wrapNodeFunc(func(n *v1.Node) *metric.Family {
+				labelKeys := []string{
+					"kernel_version",
+					"os_image",
+					"container_runtime_version",
+					"kubelet_version",
+					"kubeproxy_version",
+					"provider_id",
+					"pod_cidr",
+				}
+				labelValues := []string{
+					n.Status.NodeInfo.KernelVersion,
+					n.Status.NodeInfo.OSImage,
+					n.Status.NodeInfo.ContainerRuntimeVersion,
+					n.Status.NodeInfo.KubeletVersion,
+					n.Status.NodeInfo.KubeProxyVersion,
+					n.Spec.ProviderID,
+					n.Spec.PodCIDR,
+				}
+
+				internalIP := ""
+				for _, address := range n.Status.Addresses {
+					if address.Type == "InternalIP" {
+						internalIP = address.Address
+					}
+				}
+				labelKeys = append(labelKeys, "internal_ip")
+				labelValues = append(labelValues, internalIP)
+
 				return &metric.Family{
 					Metrics: []*metric.Metric{
 						{
-							LabelKeys: []string{
-								"kernel_version",
-								"os_image",
-								"container_runtime_version",
-								"kubelet_version",
-								"kubeproxy_version",
-								"provider_id",
-								"pod_cidr",
-							},
-							LabelValues: []string{
-								n.Status.NodeInfo.KernelVersion,
-								n.Status.NodeInfo.OSImage,
-								n.Status.NodeInfo.ContainerRuntimeVersion,
-								n.Status.NodeInfo.KubeletVersion,
-								n.Status.NodeInfo.KubeProxyVersion,
-								n.Spec.ProviderID,
-								n.Spec.PodCIDR,
-							},
-							Value: 1,
+							LabelKeys:   labelKeys,
+							LabelValues: labelValues,
+							Value:       1,
 						},
 					},
 				}
@@ -371,10 +384,10 @@ func wrapNodeFunc(f func(*v1.Node) *metric.Family) func(interface{}) *metric.Fam
 func createNodeListWatch(kubeClient clientset.Interface, ns string) cache.ListerWatcher {
 	return &cache.ListWatch{
 		ListFunc: func(opts metav1.ListOptions) (runtime.Object, error) {
-			return kubeClient.CoreV1().Nodes().List(opts)
+			return kubeClient.CoreV1().Nodes().List(context.TODO(), opts)
 		},
 		WatchFunc: func(opts metav1.ListOptions) (watch.Interface, error) {
-			return kubeClient.CoreV1().Nodes().Watch(opts)
+			return kubeClient.CoreV1().Nodes().Watch(context.TODO(), opts)
 		},
 	}
 }

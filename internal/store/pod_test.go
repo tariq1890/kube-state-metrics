@@ -291,7 +291,11 @@ func TestPodStore(t *testing.T) {
 						{
 							Name: "container1",
 							State: v1.ContainerState{
-								Running: &v1.ContainerStateRunning{},
+								Running: &v1.ContainerStateRunning{
+									StartedAt: metav1.Time{
+										Time: time.Unix(1501777018, 0),
+									},
+								},
 							},
 						},
 					},
@@ -307,6 +311,7 @@ func TestPodStore(t *testing.T) {
 			},
 			Want: `
 				# HELP kube_pod_container_status_running Describes whether the container is currently in running state.
+				# HELP kube_pod_container_state_started Start time in unix timestamp for a pod container.
 				# HELP kube_pod_container_status_terminated Describes whether the container is currently in terminated state.
 				# HELP kube_pod_container_status_terminated_reason Describes the reason the container is currently in terminated state.
 				# HELP kube_pod_container_status_waiting Describes whether the container is currently in waiting state.
@@ -317,6 +322,7 @@ func TestPodStore(t *testing.T) {
 				# HELP kube_pod_init_container_status_waiting Describes whether the init container is currently in waiting state.
 				# HELP kube_pod_init_container_status_waiting_reason Describes the reason the init container is currently in waiting state.
 				# TYPE kube_pod_container_status_running gauge
+				# TYPE kube_pod_container_state_started gauge
 				# TYPE kube_pod_container_status_terminated gauge
 				# TYPE kube_pod_container_status_terminated_reason gauge
 				# TYPE kube_pod_container_status_waiting gauge
@@ -327,6 +333,7 @@ func TestPodStore(t *testing.T) {
 				# TYPE kube_pod_init_container_status_waiting gauge
 				# TYPE kube_pod_init_container_status_waiting_reason gauge
 				kube_pod_container_status_running{container="container1",namespace="ns1",pod="pod1"} 1
+				kube_pod_container_state_started{container="container1",namespace="ns1",pod="pod1"} 1.501777018e+09
 				kube_pod_container_status_terminated_reason{container="container1",namespace="ns1",pod="pod1",reason="Completed"} 0
                 kube_pod_container_status_terminated_reason{container="container1",namespace="ns1",pod="pod1",reason="ContainerCannotRun"} 0
 				kube_pod_container_status_terminated_reason{container="container1",namespace="ns1",pod="pod1",reason="Error"} 0
@@ -361,6 +368,7 @@ func TestPodStore(t *testing.T) {
 			`,
 			MetricNames: []string{
 				"kube_pod_container_status_running",
+				"kube_pod_container_state_started",
 				"kube_pod_container_status_waiting",
 				"kube_pod_container_status_waiting_reason",
 				"kube_pod_container_status_terminated",
@@ -537,7 +545,11 @@ kube_pod_container_status_last_terminated_reason{container="container4",namespac
 						{
 							Name: "container7",
 							State: v1.ContainerState{
-								Running: &v1.ContainerStateRunning{},
+								Running: &v1.ContainerStateRunning{
+									StartedAt: metav1.Time{
+										Time: time.Unix(1501777018, 0),
+									},
+								},
 							},
 							LastTerminationState: v1.ContainerState{
 								Terminated: &v1.ContainerStateTerminated{
@@ -555,13 +567,16 @@ kube_pod_container_status_last_terminated_reason{container="container4",namespac
 				# HELP kube_pod_container_status_terminated_reason Describes the reason the container is currently in terminated state.
 				# HELP kube_pod_container_status_waiting Describes whether the container is currently in waiting state.
 				# HELP kube_pod_container_status_waiting_reason Describes the reason the container is currently in waiting state.
+				# HELP kube_pod_container_state_started Start time in unix timestamp for a pod container.
 				# TYPE kube_pod_container_status_last_terminated_reason gauge
 				# TYPE kube_pod_container_status_running gauge
 				# TYPE kube_pod_container_status_terminated gauge
 				# TYPE kube_pod_container_status_terminated_reason gauge
 				# TYPE kube_pod_container_status_waiting gauge
 				# TYPE kube_pod_container_status_waiting_reason gauge
+				# TYPE kube_pod_container_state_started gauge
 				kube_pod_container_status_running{container="container7",namespace="ns6",pod="pod6"} 1
+				kube_pod_container_state_started{container="container7",namespace="ns6",pod="pod6"} 1.501777018e+09
 				kube_pod_container_status_terminated{container="container7",namespace="ns6",pod="pod6"} 0
 kube_pod_container_status_terminated_reason{container="container7",namespace="ns6",pod="pod6",reason="Completed"} 0
 				kube_pod_container_status_terminated_reason{container="container7",namespace="ns6",pod="pod6",reason="ContainerCannotRun"} 0
@@ -587,6 +602,7 @@ kube_pod_container_status_last_terminated_reason{container="container7",namespac
 			MetricNames: []string{
 				"kube_pod_container_status_last_terminated_reason",
 				"kube_pod_container_status_running",
+				"kube_pod_container_state_started",
 				"kube_pod_container_status_terminated",
 				"kube_pod_container_status_terminated_reason",
 				"kube_pod_container_status_waiting",
@@ -604,7 +620,11 @@ kube_pod_container_status_last_terminated_reason{container="container7",namespac
 						{
 							Name: "container7",
 							State: v1.ContainerState{
-								Running: &v1.ContainerStateRunning{},
+								Running: &v1.ContainerStateRunning{
+									StartedAt: metav1.Time{
+										Time: time.Unix(1501777018, 0),
+									},
+								},
 							},
 							LastTerminationState: v1.ContainerState{
 								Terminated: &v1.ContainerStateTerminated{
@@ -618,17 +638,20 @@ kube_pod_container_status_last_terminated_reason{container="container7",namespac
 			Want: `
 				# HELP kube_pod_container_status_last_terminated_reason Describes the last reason the container was in terminated state.
 				# HELP kube_pod_container_status_running Describes whether the container is currently in running state.
+				# HELP kube_pod_container_state_started Start time in unix timestamp for a pod container.
 				# HELP kube_pod_container_status_terminated Describes whether the container is currently in terminated state.
 				# HELP kube_pod_container_status_terminated_reason Describes the reason the container is currently in terminated state.
 				# HELP kube_pod_container_status_waiting Describes whether the container is currently in waiting state.
 				# HELP kube_pod_container_status_waiting_reason Describes the reason the container is currently in waiting state.
 				# TYPE kube_pod_container_status_last_terminated_reason gauge
 				# TYPE kube_pod_container_status_running gauge
+				# TYPE kube_pod_container_state_started gauge
 				# TYPE kube_pod_container_status_terminated gauge
 				# TYPE kube_pod_container_status_terminated_reason gauge
 				# TYPE kube_pod_container_status_waiting gauge
 				# TYPE kube_pod_container_status_waiting_reason gauge
 				kube_pod_container_status_running{container="container7",namespace="ns7",pod="pod7"} 1
+				kube_pod_container_state_started{container="container7",namespace="ns7",pod="pod7"} 1.501777018e+09
 				kube_pod_container_status_terminated{container="container7",namespace="ns7",pod="pod7"} 0
 kube_pod_container_status_terminated_reason{container="container7",namespace="ns7",pod="pod7",reason="Completed"} 0
 				kube_pod_container_status_terminated_reason{container="container7",namespace="ns7",pod="pod7",reason="ContainerCannotRun"} 0
@@ -653,6 +676,7 @@ kube_pod_container_status_last_terminated_reason{container="container7",namespac
 			`,
 			MetricNames: []string{
 				"kube_pod_container_status_running",
+				"kube_pod_container_state_started",
 				"kube_pod_container_status_terminated",
 				"kube_pod_container_status_terminated_reason",
 				"kube_pod_container_status_waiting",
@@ -1353,42 +1377,77 @@ kube_pod_container_status_last_terminated_reason{container="container7",namespac
 			},
 			Want: `
 				# HELP kube_pod_container_resource_limits The number of requested limit resource by a container.
+				# HELP kube_pod_container_resource_limits_cpu_cores The number of CPU cores requested limit by a container.
+				# HELP kube_pod_container_resource_limits_ephemeral_storage_bytes Bytes of ephemeral-storage requested limit by a container.
+				# HELP kube_pod_container_resource_limits_memory_bytes Bytes of memory requested limit by a container.
+				# HELP kube_pod_container_resource_limits_storage_bytes Bytes of storage requested limit by a container.
 				# HELP kube_pod_container_resource_requests The number of requested request resource by a container.
-				# HELP kube_pod_init_container_resource_limits The number of requested limit resource by the init container.
-				# HELP kube_pod_init_container_resource_requests The number of requested resources by the init container.
+				# HELP kube_pod_container_resource_requests_cpu_cores The number of CPU cores requested by a container.
+				# HELP kube_pod_container_resource_requests_ephemeral_storage_bytes Bytes of ephemeral-storage requested by a container.
+				# HELP kube_pod_container_resource_requests_memory_bytes Bytes of memory requested by a container.
+				# HELP kube_pod_container_resource_requests_storage_bytes Bytes of storage requested by a container.
+				# HELP kube_pod_init_container_resource_limits The number of requested limit resource by an init container.
+				# HELP kube_pod_init_container_resource_limits_cpu_cores The number of CPU cores requested limit by an init container.
+				# HELP kube_pod_init_container_resource_limits_ephemeral_storage_bytes Bytes of ephemeral-storage requested limit by an init container.
+				# HELP kube_pod_init_container_resource_limits_memory_bytes Bytes of memory requested limit by an init container.
+				# HELP kube_pod_init_container_resource_limits_storage_bytes Bytes of storage requested limit by an init container.
+				# HELP kube_pod_init_container_resource_requests The number of requested request resource by an init container.
+				# HELP kube_pod_init_container_resource_requests_cpu_cores The number of CPU cores requested by an init container.
+				# HELP kube_pod_init_container_resource_requests_ephemeral_storage_bytes Bytes of ephemeral-storage requested by an init container.
+				# HELP kube_pod_init_container_resource_requests_memory_bytes Bytes of memory requested by an init container.
+				# HELP kube_pod_init_container_resource_requests_storage_bytes Bytes of storage requested by an init container.
 				# HELP kube_pod_init_container_status_last_terminated_reason Describes the last reason the init container was in terminated state.
 				# TYPE kube_pod_container_resource_limits gauge
+				# TYPE kube_pod_container_resource_limits_cpu_cores gauge
+				# TYPE kube_pod_container_resource_limits_ephemeral_storage_bytes gauge
+				# TYPE kube_pod_container_resource_limits_memory_bytes gauge
+				# TYPE kube_pod_container_resource_limits_storage_bytes gauge
 				# TYPE kube_pod_container_resource_requests gauge
+				# TYPE kube_pod_container_resource_requests_cpu_cores gauge
+				# TYPE kube_pod_container_resource_requests_ephemeral_storage_bytes gauge
+				# TYPE kube_pod_container_resource_requests_memory_bytes gauge
+				# TYPE kube_pod_container_resource_requests_storage_bytes gauge
 				# TYPE kube_pod_init_container_resource_limits gauge
+				# TYPE kube_pod_init_container_resource_limits_cpu_cores gauge
+				# TYPE kube_pod_init_container_resource_limits_ephemeral_storage_bytes gauge
+				# TYPE kube_pod_init_container_resource_limits_memory_bytes gauge
+				# TYPE kube_pod_init_container_resource_limits_storage_bytes gauge
 				# TYPE kube_pod_init_container_resource_requests gauge
+				# TYPE kube_pod_init_container_resource_requests_cpu_cores gauge
+				# TYPE kube_pod_init_container_resource_requests_ephemeral_storage_bytes gauge
+				# TYPE kube_pod_init_container_resource_requests_memory_bytes gauge
+				# TYPE kube_pod_init_container_resource_requests_storage_bytes gauge
 				# TYPE kube_pod_init_container_status_last_terminated_reason gauge
-				kube_pod_container_resource_requests{container="pod1_con1",namespace="ns1",pod="pod1",resource="cpu",unit="core"} 0.2
-				kube_pod_container_resource_requests{container="pod1_con2",namespace="ns1",pod="pod1",resource="cpu",unit="core"} 0.3
-				kube_pod_container_resource_requests{container="pod1_con1",namespace="ns1",pod="pod1",resource="nvidia_com_gpu",unit="integer"} 1
-				kube_pod_container_resource_requests{container="pod1_con1",namespace="ns1",pod="pod1",resource="memory",unit="byte"} 1e+08
-				kube_pod_container_resource_requests{container="pod1_con2",namespace="ns1",pod="pod1",resource="memory",unit="byte"} 2e+08
-				kube_pod_container_resource_requests{container="pod1_con1",namespace="ns1",pod="pod1",resource="storage",unit="byte"} 4e+08
-				kube_pod_container_resource_requests{container="pod1_con1",namespace="ns1",pod="pod1",resource="ephemeral_storage",unit="byte"} 3e+08
-				kube_pod_container_resource_limits{container="pod1_con1",namespace="ns1",pod="pod1",resource="cpu",unit="core"} 0.2
+				kube_pod_container_resource_limits_cpu_cores{container="pod1_con1",namespace="ns1",pod="pod1"} 0.2
+				kube_pod_container_resource_limits_cpu_cores{container="pod1_con2",namespace="ns1",pod="pod1"} 0.3
+				kube_pod_container_resource_limits_ephemeral_storage_bytes{container="pod1_con1",namespace="ns1",pod="pod1"} 3e+08
+				kube_pod_container_resource_limits_memory_bytes{container="pod1_con1",namespace="ns1",pod="pod1"} 1e+08
+				kube_pod_container_resource_limits_memory_bytes{container="pod1_con2",namespace="ns1",pod="pod1"} 2e+08
+				kube_pod_container_resource_limits_storage_bytes{container="pod1_con1",namespace="ns1",pod="pod1"} 4e+08
 				kube_pod_container_resource_limits{container="pod1_con1",namespace="ns1",pod="pod1",resource="nvidia_com_gpu",unit="integer"} 1
-				kube_pod_container_resource_limits{container="pod1_con2",namespace="ns1",pod="pod1",resource="cpu",unit="core"} 0.3
-				kube_pod_container_resource_limits{container="pod1_con1",namespace="ns1",pod="pod1",resource="memory",unit="byte"} 1e+08
-				kube_pod_container_resource_limits{container="pod1_con2",namespace="ns1",pod="pod1",resource="memory",unit="byte"} 2e+08
-				kube_pod_container_resource_limits{container="pod1_con1",namespace="ns1",pod="pod1",resource="storage",unit="byte"} 4e+08
-				kube_pod_container_resource_limits{container="pod1_con1",namespace="ns1",pod="pod1",resource="ephemeral_storage",unit="byte"} 3e+08
-                kube_pod_init_container_resource_limits{container="pod1_initcon1",namespace="ns1",pod="pod1",resource="cpu",unit="core"} 0.2
-                kube_pod_init_container_resource_limits{container="pod1_initcon1",namespace="ns1",pod="pod1",resource="ephemeral_storage",unit="byte"} 3e+08
-                kube_pod_init_container_resource_limits{container="pod1_initcon1",namespace="ns1",pod="pod1",resource="memory",unit="byte"} 1e+08
-                kube_pod_init_container_resource_limits{container="pod1_initcon1",namespace="ns1",pod="pod1",resource="nvidia_com_gpu",unit="integer"} 1
-                kube_pod_init_container_resource_limits{container="pod1_initcon1",namespace="ns1",pod="pod1",resource="storage",unit="byte"} 4e+08
-				kube_pod_init_container_resource_requests{container="pod1_initcon1",namespace="ns1",pod="pod1",resource="cpu",unit="core"} 0.2
-				kube_pod_init_container_resource_requests{container="pod1_initcon1",namespace="ns1",pod="pod1",resource="ephemeral_storage",unit="byte"} 3e+08
-				kube_pod_init_container_resource_requests{container="pod1_initcon1",namespace="ns1",pod="pod1",resource="memory",unit="byte"} 1e+08
+				kube_pod_container_resource_requests_cpu_cores{container="pod1_con1",namespace="ns1",pod="pod1"} 0.2
+				kube_pod_container_resource_requests_cpu_cores{container="pod1_con2",namespace="ns1",pod="pod1"} 0.3
+				kube_pod_container_resource_requests_ephemeral_storage_bytes{container="pod1_con1",namespace="ns1",pod="pod1"} 3e+08
+				kube_pod_container_resource_requests_memory_bytes{container="pod1_con1",namespace="ns1",pod="pod1"} 1e+08
+				kube_pod_container_resource_requests_memory_bytes{container="pod1_con2",namespace="ns1",pod="pod1"} 2e+08
+				kube_pod_container_resource_requests_storage_bytes{container="pod1_con1",namespace="ns1",pod="pod1"} 4e+08
+				kube_pod_container_resource_requests{container="pod1_con1",namespace="ns1",pod="pod1",resource="nvidia_com_gpu",unit="integer"} 1
+				kube_pod_init_container_resource_limits_cpu_cores{container="pod1_initcon1",namespace="ns1",pod="pod1"} 0.2
+				kube_pod_init_container_resource_limits_ephemeral_storage_bytes{container="pod1_initcon1",namespace="ns1",pod="pod1"} 3e+08
+				kube_pod_init_container_resource_limits_memory_bytes{container="pod1_initcon1",namespace="ns1",pod="pod1"} 1e+08
+				kube_pod_init_container_resource_limits_storage_bytes{container="pod1_initcon1",namespace="ns1",pod="pod1"} 4e+08
+				kube_pod_init_container_resource_limits{container="pod1_initcon1",namespace="ns1",pod="pod1",resource="nvidia_com_gpu",unit="integer"} 1
+				kube_pod_init_container_resource_requests_cpu_cores{container="pod1_initcon1",namespace="ns1",pod="pod1"} 0.2
+				kube_pod_init_container_resource_requests_ephemeral_storage_bytes{container="pod1_initcon1",namespace="ns1",pod="pod1"} 3e+08
+				kube_pod_init_container_resource_requests_memory_bytes{container="pod1_initcon1",namespace="ns1",pod="pod1"} 1e+08
+				kube_pod_init_container_resource_requests_storage_bytes{container="pod1_initcon1",namespace="ns1",pod="pod1"} 4e+08
 				kube_pod_init_container_resource_requests{container="pod1_initcon1",namespace="ns1",pod="pod1",resource="nvidia_com_gpu",unit="integer"} 1
-				kube_pod_init_container_resource_requests{container="pod1_initcon1",namespace="ns1",pod="pod1",resource="storage",unit="byte"} 4e+08
 		`,
 			MetricNames: []string{
 				"kube_pod_container_resource_requests",
+				"kube_pod_container_resource_requests_memory_bytes",
+				"kube_pod_container_resource_requests_storage_bytes",
+				"kube_pod_container_resource_requests_ephemeral_storage_bytes",
 				"kube_pod_container_resource_limits",
 				"kube_pod_init_container_resource_limits",
 				"kube_pod_init_container_resource_requests",
@@ -1453,36 +1512,36 @@ kube_pod_container_status_last_terminated_reason{container="container7",namespac
 				},
 			},
 			Want: `
-				# HELP kube_pod_container_resource_limits The number of requested limit resource by a container.
-				# HELP kube_pod_container_resource_requests The number of requested request resource by a container.
-				# HELP kube_pod_init_container_resource_limits The number of requested limit resource by the init container.
-				# TYPE kube_pod_container_resource_limits gauge
-				# TYPE kube_pod_container_resource_requests gauge
-				# TYPE kube_pod_init_container_resource_limits gauge
-				kube_pod_container_resource_requests{container="pod2_con1",namespace="ns2",pod="pod2",resource="cpu",unit="core"} 0.4
-				kube_pod_container_resource_requests{container="pod2_con2",namespace="ns2",pod="pod2",resource="cpu",unit="core"} 0.5
-				kube_pod_container_resource_requests{container="pod2_con1",namespace="ns2",pod="pod2",resource="memory",unit="byte"} 3e+08
-				kube_pod_container_resource_requests{container="pod2_con2",namespace="ns2",pod="pod2",resource="memory",unit="byte"} 4e+08
-				kube_pod_container_resource_limits{container="pod2_con1",namespace="ns2",pod="pod2",resource="cpu",unit="core"} 0.4
-				kube_pod_container_resource_limits{container="pod2_con2",namespace="ns2",pod="pod2",resource="cpu",unit="core"} 0.5
-				kube_pod_container_resource_limits{container="pod2_con1",namespace="ns2",pod="pod2",resource="memory",unit="byte"} 3e+08
-				kube_pod_container_resource_limits{container="pod2_con2",namespace="ns2",pod="pod2",resource="memory",unit="byte"} 4e+08
-                kube_pod_init_container_resource_limits{container="pod2_initcon1",namespace="ns2",pod="pod2",resource="cpu",unit="core"} 0.4
-                kube_pod_init_container_resource_limits{container="pod2_initcon1",namespace="ns2",pod="pod2",resource="memory",unit="byte"} 3e+08
+				# HELP kube_pod_container_resource_limits_cpu_cores The number of CPU cores requested limit by a container.
+				# HELP kube_pod_container_resource_limits_memory_bytes Bytes of memory requested limit by a container.
+				# HELP kube_pod_container_resource_requests_cpu_cores The number of CPU cores requested by a container.
+				# HELP kube_pod_container_resource_requests_memory_bytes Bytes of memory requested by a container.
+				# HELP kube_pod_init_container_resource_limits_cpu_cores The number of CPU cores requested limit by an init container.
+				# HELP kube_pod_init_container_resource_limits_memory_bytes Bytes of memory requested limit by an init container.
+				# TYPE kube_pod_container_resource_limits_cpu_cores gauge
+				# TYPE kube_pod_container_resource_limits_memory_bytes gauge
+				# TYPE kube_pod_container_resource_requests_cpu_cores gauge
+				# TYPE kube_pod_container_resource_requests_memory_bytes gauge
+				# TYPE kube_pod_init_container_resource_limits_cpu_cores gauge
+				# TYPE kube_pod_init_container_resource_limits_memory_bytes gauge
+				kube_pod_container_resource_requests_cpu_cores{container="pod2_con1",namespace="ns2",pod="pod2"} 0.4
+				kube_pod_container_resource_requests_cpu_cores{container="pod2_con2",namespace="ns2",pod="pod2"} 0.5
+				kube_pod_container_resource_requests_memory_bytes{container="pod2_con1",namespace="ns2",pod="pod2"} 3e+08
+				kube_pod_container_resource_requests_memory_bytes{container="pod2_con2",namespace="ns2",pod="pod2"} 4e+08
+				kube_pod_container_resource_limits_cpu_cores{container="pod2_con1",namespace="ns2",pod="pod2"} 0.4
+				kube_pod_container_resource_limits_cpu_cores{container="pod2_con2",namespace="ns2",pod="pod2"} 0.5
+				kube_pod_container_resource_limits_memory_bytes{container="pod2_con1",namespace="ns2",pod="pod2"} 3e+08
+				kube_pod_container_resource_limits_memory_bytes{container="pod2_con2",namespace="ns2",pod="pod2"} 4e+08
+				kube_pod_init_container_resource_limits_cpu_cores{container="pod2_initcon1",namespace="ns2",pod="pod2"} 0.4
+				kube_pod_init_container_resource_limits_memory_bytes{container="pod2_initcon1",namespace="ns2",pod="pod2"} 3e+08
 		`,
 			MetricNames: []string{
-				"kube_pod_container_resource_requests",
-				"kube_pod_container_resource_requests",
-				"kube_pod_container_resource_requests",
-				"kube_pod_container_resource_requests",
-				"kube_pod_container_resource_limits",
-				"kube_pod_container_resource_limits",
-				"kube_pod_container_resource_limits",
-				"kube_pod_container_resource_limits",
-				"kube_pod_init_container_resource_limits",
-				"kube_pod_init_container_resource_limits",
-				"kube_pod_init_container_resource_limits",
-				"kube_pod_init_container_resource_limits",
+				"kube_pod_container_resource_requests_cpu_cores",
+				"kube_pod_container_resource_requests_memory_bytes",
+				"kube_pod_container_resource_limits_cpu_cores",
+				"kube_pod_container_resource_limits_memory_bytes",
+				"kube_pod_init_container_resource_limits_cpu_cores",
+				"kube_pod_init_container_resource_limits_memory_bytes",
 			},
 		},
 		{
@@ -1636,7 +1695,7 @@ func BenchmarkPodStore(b *testing.B) {
 		},
 	}
 
-	expectedFamilies := 39
+	expectedFamilies := 57
 	for n := 0; n < b.N; n++ {
 		families := f(pod)
 		if len(families) != expectedFamilies {

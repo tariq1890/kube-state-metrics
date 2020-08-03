@@ -1,6 +1,6 @@
-# End2end testsuite
+# End2end Test Suite
 
-This folder contains simple e2e tests.
+This folder contains the script for simple e2e tests.
 When launched, it spins up a kubernetes cluster using [kind](https://kind.sigs.k8s.io/), creates several kubernetes resources and launches a kube-state-metrics deployment.
 Then, it runs verification tests: check metrics' presence, lint metrics, check service health, etc.
 

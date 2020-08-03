@@ -17,6 +17,8 @@ limitations under the License.
 package store
 
 import (
+	"context"
+
 	v1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -151,7 +153,23 @@ var (
 			}),
 		},
 		{
-			Name: "kube_daemonset_updated_number_scheduled",
+			Name: "kube_daemonset_status_observed_generation",
+			Type: metric.Gauge,
+			Help: "The most recent generation observed by the daemon set controller.",
+			GenerateFunc: wrapDaemonSetFunc(func(d *v1.DaemonSet) *metric.Family {
+				return &metric.Family{
+					Metrics: []*metric.Metric{
+						{
+							LabelKeys:   []string{},
+							LabelValues: []string{},
+							Value:       float64(d.Status.ObservedGeneration),
+						},
+					},
+				}
+			}),
+		},
+		{
+			Name: "kube_daemonset_status_updated_number_scheduled",
 			Type: metric.Gauge,
 			Help: "The total number of nodes that are running updated daemon pod",
 			GenerateFunc: wrapDaemonSetFunc(func(d *v1.DaemonSet) *metric.Family {
@@ -218,10 +236,10 @@ func wrapDaemonSetFunc(f func(*v1.DaemonSet) *metric.Family) func(interface{}) *
 func createDaemonSetListWatch(kubeClient clientset.Interface, ns string) cache.ListerWatcher {
 	return &cache.ListWatch{
 		ListFunc: func(opts metav1.ListOptions) (runtime.Object, error) {
-			return kubeClient.AppsV1().DaemonSets(ns).List(opts)
+			return kubeClient.AppsV1().DaemonSets(ns).List(context.TODO(), opts)
 		},
 		WatchFunc: func(opts metav1.ListOptions) (watch.Interface, error) {
-			return kubeClient.AppsV1().DaemonSets(ns).Watch(opts)
+			return kubeClient.AppsV1().DaemonSets(ns).Watch(context.TODO(), opts)
 		},
 	}
 }

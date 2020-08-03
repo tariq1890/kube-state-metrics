@@ -17,13 +17,19 @@
 set -e
 set -o pipefail
 
+case $(uname -m) in
+	aarch64)	ARCH="arm64";;
+	x86_64)		ARCH="amd64";;
+	*)		ARCH="$(uname -m)";;
+esac
+
 KUBERNETES_VERSION=v1.18.6
 KUBE_STATE_METRICS_LOG_DIR=./log
-KUBE_STATE_METRICS_IMAGE_NAME='quay.io/coreos/kube-state-metrics'
 E2E_SETUP_KIND=${E2E_SETUP_KIND:-}
+KUBE_STATE_METRICS_IMAGE_NAME="quay.io/coreos/kube-state-metrics-${ARCH}"
 E2E_SETUP_KUBECTL=${E2E_SETUP_KUBECTL:-}
-KIND_VERSION=v0.8.1
 SUDO=${SUDO:-}
+KIND_VERSION=v0.8.1
 
 OS=$(uname -s | awk '{print tolower($0)}')
 OS=${OS:-linux}
@@ -36,6 +42,7 @@ function finish() {
     kill %1 || true
     kubectl delete -f examples/standard/ || true
     kubectl delete -f tests/manifests/ || true
+    kind delete clusters kind
 }
 
 function setup_kind() {
@@ -45,7 +52,7 @@ function setup_kind() {
 }
 
 function setup_kubectl() {
-    curl -sLo kubectl https://storage.googleapis.com/kubernetes-release/release/"$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)"/bin/"${OS}"/amd64/kubectl \
+    curl -sLo kubectl https://storage.googleapis.com/kubernetes-release/release/"$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)"/bin/"${OS}"/"${ARCH}"/kubectl \
         && chmod +x kubectl \
         && ${SUDO} mv kubectl /usr/local/bin/
 }
@@ -90,19 +97,16 @@ set -e
 
 kubectl version
 
-# Build binary
-make build
-
 # query kube-state-metrics image tag
 make container
 docker images -a
-KUBE_STATE_METRICS_IMAGE_TAG=$(docker images -a|grep 'quay.io/coreos/kube-state-metrics'|grep -v 'latest'|awk '{print $2}'|sort -u)
+KUBE_STATE_METRICS_IMAGE_TAG=$(docker images -a|grep "${KUBE_STATE_METRICS_IMAGE_NAME}" |grep -v 'latest'|awk '{print $2}'|sort -u)
 echo "local kube-state-metrics image tag: $KUBE_STATE_METRICS_IMAGE_TAG"
 
-kind load docker-image quay.io/coreos/kube-state-metrics:"${KUBE_STATE_METRICS_IMAGE_TAG}"
+kind load docker-image "${KUBE_STATE_METRICS_IMAGE_NAME}:${KUBE_STATE_METRICS_IMAGE_TAG}"
 
 # update kube-state-metrics image tag in deployment.yaml
-sed -i.bak "s|${KUBE_STATE_METRICS_IMAGE_NAME}:v.*|${KUBE_STATE_METRICS_IMAGE_NAME}:${KUBE_STATE_METRICS_IMAGE_TAG}|g" ./examples/standard/deployment.yaml
+sed -i.bak "s|${KUBE_STATE_METRICS_IMAGE_NAME%-*}:v.*|${KUBE_STATE_METRICS_IMAGE_NAME}:${KUBE_STATE_METRICS_IMAGE_TAG}|g" ./examples/standard/deployment.yaml
 cat ./examples/standard/deployment.yaml
 
 trap finish EXIT
